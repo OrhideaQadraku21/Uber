@@ -37,23 +37,23 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required','email'],
-            'password' => ['required','string'],
-        ]);
+{
+    $credentials = $request->only('email', 'password');
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['message' => 'Email ose password gabim.'], 401);
-        }
-
+    if (!$token = auth('api')->attempt($credentials)) {
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in_seconds' => (int) config('jwt.ttl') * 60,
-            'user' => auth('api')->user(),
-        ]);
+            'message' => 'Email ose password gabim'
+        ], 401);
     }
+
+    return response()->json([
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in_seconds' => auth('api')->factory()->getTTL() * 60,
+        'user' => auth('api')->user()   // ← KJO është e rëndësishme
+    ]);
+}
+
 
     public function me()
 {

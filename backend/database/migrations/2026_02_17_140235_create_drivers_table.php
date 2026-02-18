@@ -6,25 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
-{
-    Schema::create('drivers', function (Blueprint $table) {
-        $table->id();
+    {
+        Schema::create('drivers', function (Blueprint $table) {
+            $table->id();
 
-        // lidhje me users table
-        $table->foreignId('user_id')
-              ->constrained()
-              ->onDelete('cascade');
+            // lidhje me tabelen users
+            $table->foreignId('user_id')
+                  ->unique()              // një user = një driver
+                  ->constrained()
+                  ->cascadeOnDelete();
 
-        // informacion për shoferin
-        $table->string('license_no')->unique();
-        $table->boolean('is_active')->default(true);
-        $table->decimal('avg_rating', 3, 2)->default(0);
+            // te dhenat e shoferit
+            $table->string('license_no')->unique();
+            $table->string('phone')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->decimal('avg_rating', 3, 2)->default(0);
 
-        $table->timestamps();
-    });
-}
+            // status online/offline (shume e rendesishme per Uber)
+            $table->boolean('is_online')->default(false);
 
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
