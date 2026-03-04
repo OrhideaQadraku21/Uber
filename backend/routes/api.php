@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VehicleController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+| All routes here are automatically prefixed with /api
+*/
+
 Route::get('/health', function () {
     return response()->json([
         'status' => 'OK',
@@ -11,22 +18,38 @@ Route::get('/health', function () {
     ]);
 });
 
-// ===== AUTH (public) =====
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+/*
+|--------------------------------------------------------------------------
+| AUTH (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
-// ===== PROTECTED (needs Bearer token) =====
+/*
+|--------------------------------------------------------------------------
+| PROTECTED (JWT Bearer)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth:api')->group(function () {
 
-    // auth
-    Route::get('/auth/me', [AuthController::class, 'me']);
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+    // ---- AUTH (protected)
+    Route::prefix('auth')->group(function () {
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+    });
 
-    // vehicles (admin / later we will protect with role middleware)
-    Route::get('/vehicles', [VehicleController::class, 'index']);
-    Route::post('/vehicles', [VehicleController::class, 'store']);
+    // ---- VEHICLES
+    Route::prefix('vehicles')->group(function () {
+        Route::get('/', [VehicleController::class, 'index']);     // GET /api/vehicles
+        Route::post('/', [VehicleController::class, 'store']);    // POST /api/vehicles
+    });
 
-    // driver - get my vehicle
-    Route::get('/driver/vehicle', [VehicleController::class, 'myVehicle']);
+    // ---- DRIVER
+    Route::prefix('driver')->group(function () {
+        Route::get('/vehicle', [VehicleController::class, 'myVehicle']); // GET /api/driver/vehicle
+    });
 });
