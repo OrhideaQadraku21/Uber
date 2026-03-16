@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\DriverController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,14 +43,39 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/refresh', [AuthController::class, 'refresh']);
     });
 
-    // ---- VEHICLES
-    Route::prefix('vehicles')->group(function () {
-        Route::get('/', [VehicleController::class, 'index']);     // GET /api/vehicles
-        Route::post('/', [VehicleController::class, 'store']);    // POST /api/vehicles
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN ONLY
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:admin')->group(function () {
+
+        // ---- DRIVERS (ADMIN)
+        Route::prefix('drivers')->group(function () {
+            Route::get('/', [DriverController::class, 'index']);   // GET /api/drivers
+            Route::post('/', [DriverController::class, 'store']);  // POST /api/drivers
+        });
+
+        // ---- VEHICLES (ADMIN)
+        Route::prefix('vehicles')->group(function () {
+            Route::get('/', [VehicleController::class, 'index']);  // GET /api/vehicles
+            Route::post('/', [VehicleController::class, 'store']); // POST /api/vehicles
+        });
+
+        // (ma vonë: dashboard, users, etj.)
     });
 
-    // ---- DRIVER
-    Route::prefix('driver')->group(function () {
-        Route::get('/vehicle', [VehicleController::class, 'myVehicle']); // GET /api/driver/vehicle
+    /*
+    |--------------------------------------------------------------------------
+    | DRIVER ONLY
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('role:driver')->group(function () {
+
+        Route::prefix('driver')->group(function () {
+            Route::get('/vehicle', [VehicleController::class, 'myVehicle']); // GET /api/driver/vehicle
+        });
+
+        // (ma vonë: rides, online/offline, etj.)
     });
 });
